@@ -1,168 +1,363 @@
-import { Flex, Heading, Text } from "@chakra-ui/react";
-import { curry } from "lodash";
+import {
+    Alert, AlertIcon,
+    Button,
+    Flex, FormControl, FormLabel,
+    Heading, Input, InputGroup, InputRightElement,
+    Modal, ModalBody, ModalCloseButton,
+    ModalContent, ModalFooter,
+    ModalHeader,
+    Skeleton,
+    Stack,
+    Text, Textarea,
+    useDisclosure
+} from "@chakra-ui/react";
 import dynamic from "next/dynamic";
-import React, { useState } from "react";
-import { DragDropContext } from "react-beautiful-dnd";
+import React, {useEffect, useState} from "react";
+import {DragDropContext} from "react-beautiful-dnd";
+import {SingleDatepicker} from "chakra-dayzed-datepicker";
+import {useFormik} from "formik";
+import * as Yup from "yup";
+import {add, format} from 'date-fns';
 
-const Column = dynamic(() => import("../src/Column"), { ssr: false });
+const Column = dynamic(() => import("../src/Column"), {ssr: false});
 
 const reorderTasks = (tasks, startIndex, endIndex) => {
-  const newTaskList = Array.from(tasks);
-  const [removed] = newTaskList.splice(startIndex, 1);
-  newTaskList.splice(endIndex, 0, removed);
-  return newTaskList;
+    const newTaskList = Array.from(tasks);
+    const [removed] = newTaskList.splice(startIndex, 1);
+    newTaskList.splice(endIndex, 0, removed);
+    return newTaskList;
 };
 
 export default function Home() {
-  const queryAttr = "data-rbd-drag-handle-draggable-id";
-  const [state, setState] = useState(initialData);
-  const [placeholderProps, setPlaceholderProps] = useState({});
+    const [todoDataList, setTodoDataList] = useState(null)
+    const [isLoading, setLoading] = useState(false);
+    const [createTodoLoading, setCreateTodoLoading] = useState(false);
+    const [createTodoErrorMessage, setCreateTodoErrorMessage] = useState(null);
+    const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const getDraggedDom = (draggableId) => {
-    const domQuery = `[${queryAttr}='${draggableId}']`;
-    const draggedDOM = document.querySelector(domQuery);
 
-    return draggedDOM;
-  };
+    const [date, setDate] = useState();
 
-  const onDragEnd = (result) => {
-    const { source, destination } = result;
+    const createTodoForm = useFormik({
+        enableReinitialize: true,
+        initialValues: {
+            title: "",
+            description: "",
+            dueDate: undefined,
+        },
+        validationSchema: Yup.object().shape({
+            title: Yup.string().min(3).required("The title is required"),
+            description: Yup.string(),
+            dueDate: Yup.string(),
+        }),
+        onSubmit: async (values, helpers) => {
+            setCreateTodoLoading(true);
+            setCreateTodoErrorMessage(null);
 
-    // if the user drops outside of a droppable destination
-    if (!destination) return;
+            fetch("https://factory-digital-test.herokuapp.com/api/v1/todos/create", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ODg4ZDhkLWE3ZTUtNDI5Mi05ZjI2LWM5ZWRiNzE1YTYxYSIsImlhdCI6MTY2Nzk4NjM0MywiZXhwIjoxNjgzNzU0MzQzfQ.WjJQhsnnNf_DbDB27AQtG0cN8x68VM798tW286_zPaU"
+                },
+                body: JSON.stringify({
+                    "title": values.title,
+                    "description": values.description.length > 0 ? values.description : null,
+                    "dueBy": values.dueDate ? format(values.dueDate, "yyyy-MM-dd") : null,
+                })
+            }).then((res) => res.json())
+                .then((results) => {
+                    if (results.status){
+                        setCreateTodoLoading(false);
+                        onClose();
+                        fetchTodos();
+                        createTodoForm.resetForm();
+                    } else {
+                        console.log("Error creating the todo ");
+                        setCreateTodoErrorMessage(`Error: ${results.message}`);
+                        setCreateTodoLoading(false);
+                    }
+                })
+        }
+    })
 
-    // If the user drags and drops back in the same position
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    ) {
-      return;
+    useEffect(() => {
+        fetchTodos();
+    }, []);
+
+    const fetchTodos = () => {
+        setLoading(true)
+        fetch(
+            'https://factory-digital-test.herokuapp.com/api/v1/todos/myTodos',
+            {
+                headers: {
+                    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ODg4ZDhkLWE3ZTUtNDI5Mi05ZjI2LWM5ZWRiNzE1YTYxYSIsImlhdCI6MTY2Nzk4NjM0MywiZXhwIjoxNjgzNzU0MzQzfQ.WjJQhsnnNf_DbDB27AQtG0cN8x68VM798tW286_zPaU"
+                }
+            }
+        )
+            .then((res) => res.json())
+            .then((data) => {
+                setLoading(false)
+                if (data.status){
+                    setTodoDataList(data.results);
+                } else {
+                }
+            }).catch(error => {
+            console.log("Error fetching todos ")
+            console.log(error)
+        });
     }
 
-    // If the user drops in a different postion
-    const { tasks } = state;
-    const newTasks = reorderTasks(tasks, source.index, destination.index);
+    const queryAttr = "data-rbd-drag-handle-draggable-id";
 
-    const newState = {
-      ...state,
-      tasks: newTasks,
+
+    const [state, setState] = useState(initialData);
+
+
+
+    const [placeholderProps, setPlaceholderProps] = useState({});
+
+    const getDraggedDom = (draggableId) => {
+        const domQuery = `[${queryAttr}='${draggableId}']`;
+        const draggedDOM = document.querySelector(domQuery);
+
+        return draggedDOM;
     };
-    setState(newState);
-  };
 
-  const onDragUpdate = (result) => {
-    const { source, destination, draggableId } = result;
+    const onDragEnd = (result) => {
+        console.log("OnDrag Ended ", result);
+        const {source, destination} = result;
 
-    if (!destination) return;
+        // if the user drops outside of a droppable destination
+        if (!destination) return;
 
-    const draggedDOM = getDraggedDom(draggableId);
+        // If the user drags and drops back in the same position
+        if (
+            destination.droppableId === source.droppableId &&
+            destination.index === source.index
+        ) {
+            return;
+        }
 
-    if (!draggedDOM.parentNode) return;
+        // If the user drops in a different postion
+        const {tasks} = state;
+        const newTasks = reorderTasks(tasks, source.index, destination.index);
 
-    const { clientHeight, clientWidth } = draggedDOM;
-    const destinationIndex = destination.index;
-    const sourceIndex = source.index;
+        const newState = {
+            ...state,
+            tasks: newTasks,
+        };
+        setState(newState);
+    };
 
-    const childrenArray = draggedDOM.parentNode.children
-      ? [...draggedDOM.parentNode.children]
-      : [];
+    const onDragUpdate = (result) => {
+        const {source, destination, draggableId} = result;
 
-    const movedItem = childrenArray[sourceIndex];
-    childrenArray.splice(sourceIndex, 1);
+        if (!destination) return;
 
-    const updatedArray = [
-      ...childrenArray.splice(0, destinationIndex),
-      movedItem,
-      ...childrenArray.splice(destinationIndex + 1),
-    ];
+        const draggedDOM = getDraggedDom(draggableId);
 
-    const clientY =
-      parseFloat(window.getComputedStyle(draggedDOM.parentNode).paddingTop) +
-      updatedArray.splice(0, destinationIndex).reduce((total, current) => {
-        const style = current.currentStyle || window.getComputedStyle(current);
-        const marginBottom = parseFloat(style.marginBottom);
-        return total + current.clientHeight + marginBottom;
-      }, 0);
+        if (!draggedDOM.parentNode) return;
 
-    setPlaceholderProps({
-      clientHeight,
-      clientWidth,
-      clientY,
-    });
-  };
+        const {clientHeight, clientWidth} = draggedDOM;
+        const destinationIndex = destination.index;
+        const sourceIndex = source.index;
 
-  const onDragStart = (result) => {
-    const { source, draggableId } = result;
-    const draggedDOM = getDraggedDom(draggableId);
+        const childrenArray = draggedDOM.parentNode.children
+            ? [...draggedDOM.parentNode.children]
+            : [];
 
-    if (!draggedDOM) return;
+        const movedItem = childrenArray[sourceIndex];
+        childrenArray.splice(sourceIndex, 1);
 
-    const { clientHeight, clientWidth } = draggedDOM;
-    const sourceIndex = source.index;
+        const updatedArray = [
+            ...childrenArray.splice(0, destinationIndex),
+            movedItem,
+            ...childrenArray.splice(destinationIndex + 1),
+        ];
 
-    if (!draggedDOM.parentNode) return;
+        const clientY =
+            parseFloat(window.getComputedStyle(draggedDOM.parentNode).paddingTop) +
+            updatedArray.splice(0, destinationIndex).reduce((total, current) => {
+                const style = current.currentStyle || window.getComputedStyle(current);
+                const marginBottom = parseFloat(style.marginBottom);
+                return total + current.clientHeight + marginBottom;
+            }, 0);
 
-    /**
-     * 1. Take all the items in the list as an array
-     * 2. Slice from the start to the where we are dropping the dragged item (i.e destinationIndex)
-     * 3. Reduce and fetch the styles of each item
-     * 4. Add up the margins, widths, paddings
-     * 5. Accumulate and assign that to clientY
-     */
-    const clientY =
-      parseFloat(window.getComputedStyle(draggedDOM.parentNode).paddingTop) +
-      [...draggedDOM.parentNode.children]
-        .slice(0, sourceIndex)
-        .reduce((total, current) => {
-          const style =
-            current.currentStyle || window.getComputedStyle(current);
-          const marginBottom = parseFloat(style.marginBottom);
+        setPlaceholderProps({
+            clientHeight,
+            clientWidth,
+            clientY,
+        });
+    };
 
-          return total + current.clientHeight + marginBottom;
-        }, 0);
+    const onDragStart = (result) => {
+        console.log("Drag started width data ", result);
+        const {source, draggableId} = result;
+        const draggedDOM = getDraggedDom(draggableId);
 
-    setPlaceholderProps({
-      clientHeight,
-      clientWidth,
-      clientY,
-    });
-  };
+        if (!draggedDOM) return;
 
-  return (
-    <DragDropContext
-      onDragStart={onDragStart}
-      onDragUpdate={onDragUpdate}
-      onDragEnd={onDragEnd}
-    >
-      <Flex
-        flexDir="column"
-        bg="main-bg"
-        minH="100vh"
-        w="full"
-        color="white-text"
-        pb="2rem"
-      >
-        <Flex py="4rem" flexDir="column" align="center">
-          <Heading fontSize="3xl" fontWeight={600}>
-            react-beautiful-dnd
-          </Heading>
-          <Text fontSize="20px" fontWeight={600} color="subtle-text"></Text>
-        </Flex>
+        const {clientHeight, clientWidth} = draggedDOM;
+        const sourceIndex = source.index;
 
-        <Flex justify="center" px="4rem">
-          <Column placeholderProps={placeholderProps} tasks={state.tasks} />
-        </Flex>
-      </Flex>
-    </DragDropContext>
-  );
+        if (!draggedDOM.parentNode) return;
+
+        /**
+         * 1. Take all the items in the list as an array
+         * 2. Slice from the start to the where we are dropping the dragged item (i.e destinationIndex)
+         * 3. Reduce and fetch the styles of each item
+         * 4. Add up the margins, widths, paddings
+         * 5. Accumulate and assign that to clientY
+         */
+        const clientY =
+            parseFloat(window.getComputedStyle(draggedDOM.parentNode).paddingTop) +
+            [...draggedDOM.parentNode.children]
+                .slice(0, sourceIndex)
+                .reduce((total, current) => {
+                    const style =
+                        current.currentStyle || window.getComputedStyle(current);
+                    const marginBottom = parseFloat(style.marginBottom);
+
+                    return total + current.clientHeight + marginBottom;
+                }, 0);
+
+        setPlaceholderProps({
+            clientHeight,
+            clientWidth,
+            clientY,
+        });
+    };
+
+    if (isLoading){
+        return (
+            <>
+                <Skeleton height='20px' />
+                <Skeleton height='20px' />
+                <Skeleton height='20px' />
+            </>
+        )
+    } else {
+        return (
+            <>
+                <DragDropContext
+                    onDragStart={onDragStart}
+                    onDragUpdate={onDragUpdate}
+                    onDragEnd={onDragEnd}
+                >
+                    <Flex
+                        flexDir="column"
+                        bg="main-bg"
+                        minH="100vh"
+                        w="full"
+                        color="white-text"
+                        pb="2rem"
+                    >
+                        <Flex py="4rem" flexDir="column" align="center">
+                            <Heading fontSize="3xl" fontWeight={600}>
+                                Factory Digital Test
+                            </Heading>
+                            <Text fontSize="20px" fontWeight={600} color="subtle-text">This frontend used to manage todos, build using NextJS, Chakra-UI and the fetch apis from Javascript</Text>
+                        </Flex>
+
+                        <Flex flexDir="column" align="center" px="4rem">
+                            <Button colorScheme='blue' onClick={onOpen}>Add new</Button>
+                            <Column placeholderProps={placeholderProps} todoList={todoDataList}/>
+                        </Flex>
+                    </Flex>
+                </DragDropContext>
+
+                <Modal
+                    isOpen={isOpen}
+                    onClose={onClose}
+                >
+                    <ModalContent>
+                        <ModalHeader>Create todo</ModalHeader>
+                        <ModalCloseButton />
+                        <ModalBody pb={6}>
+                            {createTodoErrorMessage && (
+                                <Alert status='error'>
+                                    <AlertIcon />
+                                    {createTodoErrorMessage}
+                                </Alert>
+                            )}
+                            <FormControl mt={3}>
+                                <FormLabel>Title</FormLabel>
+                                <Input
+                                    name={"title"}
+                                    placeholder='Build front end'
+                                    value={createTodoForm.values.title}
+                                    onChange={createTodoForm.handleChange}
+                                />
+                            </FormControl>
+
+                            <FormControl mt={4}>
+                                <FormLabel>Description</FormLabel>
+                                <Textarea
+                                    name={"description"}
+                                    placeholder="Frontend is not my type, but let's try"
+                                    value={createTodoForm.values.description}
+                                    onChange={createTodoForm.handleChange}
+                                />
+                            </FormControl>
+                            <FormControl mt={4}>
+                                <FormLabel>Description</FormLabel>
+                                <InputGroup size='md'>
+                                <SingleDatepicker
+                                    name="date-input"
+                                    date={createTodoForm.values.dueDate}
+                                    onDateChange={(value) => createTodoForm.setFieldValue("dueDate", add(value, {hours: 1}))}
+                                    minDate={new Date()}
+                                    configs={{
+                                        dateFormat: 'yyyy-MM-dd',
+                                    }}
+                                />
+                                    <InputRightElement width='4.5rem'>
+                                        <Button
+                                            h='1.75rem'
+                                            size='sm'
+                                            disabled={!createTodoForm.values.dueDate}
+                                            onClick={() => {
+                                                createTodoForm.setFieldValue("dueDate", undefined);
+                                            }}
+                                        >
+                                            {'Clear'}
+                                        </Button>
+                                    </InputRightElement>
+                                </InputGroup>
+                            </FormControl>
+                        </ModalBody>
+                        <ModalFooter>
+                            <Button
+                                colorScheme='blue'
+                                mr={3}
+                                onClick={() => {
+                                    createTodoForm.handleSubmit();
+                                }}
+                                disabled={createTodoLoading}
+                            >
+                                Create
+                            </Button>
+                            <Button
+                                onClick={onClose}
+                                disabled={createTodoLoading}
+                            >Cancel</Button>
+                        </ModalFooter>
+                    </ModalContent>
+                </Modal>
+            </>
+        );
+    }
+
 }
 
 const initialData = {
-  tasks: [
-    { id: 1, content: "The first task" },
-    { id: 2, content: "The second task" },
-    { id: 3, content: "The third task" },
-    { id: 4, content: "The fourth task" },
-    { id: 5, content: "The fifth task" },
-  ],
+    tasks: [
+        {id: 1, content: "The first task"},
+        {id: 2, content: "The second task"},
+        {id: 3, content: "The third task"},
+        {id: 4, content: "The fourth task"},
+        {id: 5, content: "The fifth task"},
+    ],
 };
