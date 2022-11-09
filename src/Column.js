@@ -39,11 +39,12 @@ const Column = ({todoList, placeholderProps}) => {
                                             p="1.5rem"
                                             _active={{bg: "#23252F"}}
                                             outline="2px solid"
-                                            outlineColor={
-                                                draggableSnapshot.isDragging
-                                                    ? "card-border"
-                                                    : "transparent"
-                                            }
+                                            // outlineColor={
+                                            //     draggableSnapshot.isDragging
+                                            //         ? "card-border"
+                                            //         : "transparent"
+                                            // }
+                                            outlineColor="card-border"
                                             boxShadow={
                                                 draggableSnapshot.isDragging
                                                     ? "0 5px 10px rgba(0, 0, 0, 0.6)"

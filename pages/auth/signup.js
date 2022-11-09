@@ -1,7 +1,6 @@
 import {
     Box,
     Button,
-    Checkbox,
     Container,
     Divider,
     FormControl,
@@ -10,7 +9,6 @@ import {
     HStack,
     Input,
     Stack,
-    Text,
     useBreakpointValue,
     useColorModeValue,
 } from '@chakra-ui/react'

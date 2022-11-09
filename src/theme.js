@@ -1,16 +1,16 @@
 import { extendTheme, theme } from "@chakra-ui/react";
 
 const colors = {
-  "main-bg": "#0E1012",
+  "main-bg": "#FFF",
 
-  "white-text": "#E8E8EA",
-  "subtle-text": "#9B9B9B",
+  "white-text": "#0E1012",
+  "subtle-text": "#0E1012",
 
-  "column-bg": "#16181D",
-  "column-header-bg": "#1A1D23",
+  "column-bg": "#E8E8EA",
+  "column-header-bg": "#0E1012",
 
-  "card-bg": "#242731",
-  "card-border": "#2D313E"
+  "card-bg": "#E8E8EA",
+  "card-border": "#0E1012"
 };
 
 const fonts = {
