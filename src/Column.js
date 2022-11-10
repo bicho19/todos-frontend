@@ -1,4 +1,4 @@
-import {Badge, Box, Button, Flex, HStack, Spacer, Text} from "@chakra-ui/react";
+import {Badge, Box, Button, Flex, HStack, Spacer, Text, Tooltip} from "@chakra-ui/react";
 import {isEmpty} from "lodash";
 import React from "react";
 import {Draggable} from "react-beautiful-dnd";
@@ -75,9 +75,11 @@ const Column = ({todoList, onRefresh, placeholderProps}) => {
                                                         </Badge>
                                                     )}
                                                     {todoItem.state === "completed" && (
-                                                        <Badge borderRadius='full' px='2' colorScheme='green'>
-                                                            {todoItem.state}
-                                                        </Badge>
+                                                        <Tooltip label={`This todo marked as complete at ${format(new Date(todoItem.completedAt), "yyyy-MM-dd HH:mm:ss")}`} aria-label='A tooltip'>
+                                                            <Badge borderRadius='full' px='2' colorScheme='green'>
+                                                                {todoItem.state}
+                                                            </Badge>
+                                                        </Tooltip>
                                                     )}
                                                 </HStack>
                                                 <Text fontSize={16}>{todoItem.description}</Text>
