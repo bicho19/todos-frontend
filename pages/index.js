@@ -6,10 +6,10 @@ import {
     Modal, ModalBody, ModalCloseButton,
     ModalContent, ModalFooter,
     ModalHeader,
-    Skeleton,
+    Skeleton, Spacer, Spinner,
     Stack,
     Text, Textarea,
-    useDisclosure
+    useDisclosure, VStack
 } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
 import React, {useEffect, useState} from "react";
@@ -30,10 +30,10 @@ const reorderTasks = (tasks, startIndex, endIndex) => {
 
 export default function Home() {
     const [todoDataList, setTodoDataList] = useState(null)
-    const [isLoading, setLoading] = useState(false);
+    const [isLoading, setLoading] = useState(true);
     const [createTodoLoading, setCreateTodoLoading] = useState(false);
     const [createTodoErrorMessage, setCreateTodoErrorMessage] = useState(null);
-    const { isOpen, onOpen, onClose } = useDisclosure();
+    const {isOpen, onOpen, onClose} = useDisclosure();
 
 
     const [date, setDate] = useState();
@@ -68,7 +68,7 @@ export default function Home() {
                 })
             }).then((res) => res.json())
                 .then((results) => {
-                    if (results.status){
+                    if (results.status) {
                         setCreateTodoLoading(false);
                         onClose();
                         fetchTodos();
@@ -99,7 +99,7 @@ export default function Home() {
             .then((res) => res.json())
             .then((data) => {
                 setLoading(false)
-                if (data.status){
+                if (data.status) {
                     setTodoDataList(data.results);
                 } else {
                 }
@@ -113,7 +113,6 @@ export default function Home() {
 
 
     const [state, setState] = useState(initialData);
-
 
 
     const [placeholderProps, setPlaceholderProps] = useState({});
@@ -230,80 +229,80 @@ export default function Home() {
         });
     };
 
-    if (isLoading){
-        return (
-            <>
-                <Skeleton height='20px' />
-                <Skeleton height='20px' />
-                <Skeleton height='20px' />
-            </>
-        )
-    } else {
-        return (
-            <>
-                <DragDropContext
-                    onDragStart={onDragStart}
-                    onDragUpdate={onDragUpdate}
-                    onDragEnd={onDragEnd}
+    return (
+        <>
+            <DragDropContext
+                onDragStart={onDragStart}
+                onDragUpdate={onDragUpdate}
+                onDragEnd={onDragEnd}
+            >
+                <Flex
+                    flexDir="column"
+                    minH="100vh"
+                    w="full"
+                    pb="2rem"
                 >
-                    <Flex
-                        flexDir="column"
-                        bg="main-bg"
-                        minH="100vh"
-                        w="full"
-                        color="white-text"
-                        pb="2rem"
-                    >
-                        <Flex py="4rem" flexDir="column" align="center">
-                            <Heading fontSize="3xl" fontWeight={600}>
-                                Factory Digital Test
-                            </Heading>
-                            <Text fontSize="20px" fontWeight={600} color="subtle-text">This frontend used to manage todos, build using NextJS, Chakra-UI and the fetch apis from Javascript</Text>
-                        </Flex>
-
-                        <Flex flexDir="column" align="center" px="4rem">
-                            <Button colorScheme='blue' onClick={onOpen}>Add new</Button>
-                            <Column placeholderProps={placeholderProps} todoList={todoDataList}/>
-                        </Flex>
+                    <Flex py="4rem" flexDir="column" align="center">
+                        <Heading fontSize="3xl" fontWeight={600}>
+                            Factory Digital Test
+                        </Heading>
+                        <Text fontSize="20px" fontWeight={600} color="subtle-text">This frontend used to manage
+                            todos, build using NextJS, Chakra-UI and the fetch apis from Javascript</Text>
                     </Flex>
-                </DragDropContext>
 
-                <Modal
-                    isOpen={isOpen}
-                    onClose={onClose}
-                >
-                    <ModalContent>
-                        <ModalHeader>Create todo</ModalHeader>
-                        <ModalCloseButton />
-                        <ModalBody pb={6}>
-                            {createTodoErrorMessage && (
-                                <Alert status='error'>
-                                    <AlertIcon />
-                                    {createTodoErrorMessage}
-                                </Alert>
-                            )}
-                            <FormControl mt={3}>
-                                <FormLabel>Title</FormLabel>
-                                <Input
-                                    name={"title"}
-                                    placeholder='Build front end'
-                                    value={createTodoForm.values.title}
-                                    onChange={createTodoForm.handleChange}
-                                />
-                            </FormControl>
+                    <VStack spacing='16px' align="center">
+                        <Button colorScheme='blue' onClick={onOpen}>Add new</Button>
+                        <Spacer />
+                        {isLoading && (
+                            <>
+                                <Flex>
+                                    <Spinner color='red.500'/>
+                                </Flex>
+                            </>
+                        )}
+                        {!isLoading && (
+                            <Column placeholderProps={placeholderProps} todoList={todoDataList}/>
+                        )}
+                    </VStack>
+                </Flex>
+            </DragDropContext>
 
-                            <FormControl mt={4}>
-                                <FormLabel>Description</FormLabel>
-                                <Textarea
-                                    name={"description"}
-                                    placeholder="Frontend is not my type, but let's try"
-                                    value={createTodoForm.values.description}
-                                    onChange={createTodoForm.handleChange}
-                                />
-                            </FormControl>
-                            <FormControl mt={4}>
-                                <FormLabel>Description</FormLabel>
-                                <InputGroup size='md'>
+            <Modal
+                isOpen={isOpen}
+                onClose={onClose}
+            >
+                <ModalContent>
+                    <ModalHeader>Create todo</ModalHeader>
+                    <ModalCloseButton/>
+                    <ModalBody pb={6}>
+                        {createTodoErrorMessage && (
+                            <Alert status='error'>
+                                <AlertIcon/>
+                                {createTodoErrorMessage}
+                            </Alert>
+                        )}
+                        <FormControl mt={3}>
+                            <FormLabel>Title</FormLabel>
+                            <Input
+                                name={"title"}
+                                placeholder='Build front end'
+                                value={createTodoForm.values.title}
+                                onChange={createTodoForm.handleChange}
+                            />
+                        </FormControl>
+
+                        <FormControl mt={4}>
+                            <FormLabel>Description</FormLabel>
+                            <Textarea
+                                name={"description"}
+                                placeholder="Frontend is not my type, but let's try"
+                                value={createTodoForm.values.description}
+                                onChange={createTodoForm.handleChange}
+                            />
+                        </FormControl>
+                        <FormControl mt={4}>
+                            <FormLabel>Description</FormLabel>
+                            <InputGroup size='md'>
                                 <SingleDatepicker
                                     name="date-input"
                                     date={createTodoForm.values.dueDate}
@@ -313,42 +312,41 @@ export default function Home() {
                                         dateFormat: 'yyyy-MM-dd',
                                     }}
                                 />
-                                    <InputRightElement width='4.5rem'>
-                                        <Button
-                                            h='1.75rem'
-                                            size='sm'
-                                            disabled={!createTodoForm.values.dueDate}
-                                            onClick={() => {
-                                                createTodoForm.setFieldValue("dueDate", undefined);
-                                            }}
-                                        >
-                                            {'Clear'}
-                                        </Button>
-                                    </InputRightElement>
-                                </InputGroup>
-                            </FormControl>
-                        </ModalBody>
-                        <ModalFooter>
-                            <Button
-                                colorScheme='blue'
-                                mr={3}
-                                onClick={() => {
-                                    createTodoForm.handleSubmit();
-                                }}
-                                disabled={createTodoLoading}
-                            >
-                                Create
-                            </Button>
-                            <Button
-                                onClick={onClose}
-                                disabled={createTodoLoading}
-                            >Cancel</Button>
-                        </ModalFooter>
-                    </ModalContent>
-                </Modal>
-            </>
-        );
-    }
+                                <InputRightElement width='4.5rem'>
+                                    <Button
+                                        h='1.75rem'
+                                        size='sm'
+                                        disabled={!createTodoForm.values.dueDate}
+                                        onClick={() => {
+                                            createTodoForm.setFieldValue("dueDate", undefined);
+                                        }}
+                                    >
+                                        {'Clear'}
+                                    </Button>
+                                </InputRightElement>
+                            </InputGroup>
+                        </FormControl>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button
+                            colorScheme='blue'
+                            mr={3}
+                            onClick={() => {
+                                createTodoForm.handleSubmit();
+                            }}
+                            disabled={createTodoLoading}
+                        >
+                            Create
+                        </Button>
+                        <Button
+                            onClick={onClose}
+                            disabled={createTodoLoading}
+                        >Cancel</Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+        </>
+    );
 
 }
 

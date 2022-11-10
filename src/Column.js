@@ -1,4 +1,4 @@
-import {Flex, Text} from "@chakra-ui/react";
+import {Badge, Box, Button, Flex, HStack, Spacer, Text} from "@chakra-ui/react";
 import {isEmpty} from "lodash";
 import React from "react";
 import {Draggable} from "react-beautiful-dnd";
@@ -9,8 +9,7 @@ const Column = ({todoList, placeholderProps}) => {
         <Flex
             rounded="3px"
             bg="column-bg"
-            w="500px"
-            h="610px"
+            w="90vw"
             flexDir="column"
             position="relative"
         >
@@ -33,7 +32,6 @@ const Column = ({todoList, placeholderProps}) => {
                                     {(draggableProvided, draggableSnapshot) => (
                                         <Flex
                                             mb="1rem"
-                                            h="100px"
                                             bg="card-bg"
                                             rounded="3px"
                                             p="1.5rem"
@@ -57,9 +55,20 @@ const Column = ({todoList, placeholderProps}) => {
                                             ref={draggableProvided.innerRef}
                                         >
                                             <Flex flexDir="column" align="left">
-                                                <Text fontSize="20px">{todoItem.title}</Text>
+                                                <HStack>
+                                                    <Text fontSize="20px">{todoItem.title}</Text>
+                                                    <Badge borderRadius='full' px='2' colorScheme='teal'>
+                                                        {todoItem.state}
+                                                    </Badge>
+                                                </HStack>
                                                 <Text fontSize="20px">{todoItem.description}</Text>
                                                 <Text fontSize="20px">Due Date: {todoItem.dueDate}</Text>
+                                                <Flex mt={4} minWidth='max-content' alignItems='center' gap='2'>
+                                                    <Button colorScheme='gray' size='sm'>
+                                                        Mark as completed
+                                                    </Button>
+                                                </Flex>
+
                                             </Flex>
                                         </Flex>
                                     )}
