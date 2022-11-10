@@ -264,7 +264,13 @@ export default function Home() {
                                 </>
                             )}
                             {!isLoading && (
-                                <Column placeholderProps={placeholderProps} todoList={todoDataList}/>
+                                <Column
+                                    placeholderProps={placeholderProps}
+                                    todoList={todoDataList}
+                                    onRefresh={() => {
+                                        fetchTodos();
+                                    }}
+                                />
                             )}
                         </VStack>
                     </Flex>

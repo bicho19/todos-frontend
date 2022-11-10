@@ -3,8 +3,19 @@ import {isEmpty} from "lodash";
 import React from "react";
 import {Draggable} from "react-beautiful-dnd";
 import {Droppable} from "react-beautiful-dnd";
+import {todoService} from "./todoService";
 
-const Column = ({todoList, placeholderProps}) => {
+const Column = ({todoList, onRefresh, placeholderProps}) => {
+
+    const markTodoAsCompleted = async (todoId) => {
+        let response = await todoService.markTodoAsCompleted(todoId);
+
+        if (response) {
+            onRefresh();
+        } else {
+
+        }
+    }
     return (
         <Flex
             rounded="3px"
@@ -72,7 +83,13 @@ const Column = ({todoList, placeholderProps}) => {
                                                 <Text fontSize="20px">Due Date: {todoItem.dueDate}</Text>
                                                 <Flex mt={4} minWidth='max-content' alignItems='center' gap='2'>
                                                     {!todoItem.completedAt && (
-                                                        <Button colorScheme='gray' size='sm'>
+                                                        <Button
+                                                            colorScheme='gray'
+                                                            size='sm'
+                                                            onClick={() => {
+                                                                markTodoAsCompleted(todoItem.id)
+                                                            }}
+                                                        >
                                                             Mark as completed
                                                         </Button>
                                                     )}
