@@ -57,16 +57,25 @@ const Column = ({todoList, placeholderProps}) => {
                                             <Flex flexDir="column" align="left">
                                                 <HStack>
                                                     <Text fontSize="20px">{todoItem.title}</Text>
-                                                    <Badge borderRadius='full' px='2' colorScheme='teal'>
-                                                        {todoItem.state}
-                                                    </Badge>
+                                                    {todoItem.state === "pending" && (
+                                                        <Badge borderRadius='full' px='2' color='#ED8936'>
+                                                            {todoItem.state}
+                                                        </Badge>
+                                                    )}
+                                                    {todoItem.state === "completed" && (
+                                                        <Badge borderRadius='full' px='2' colorScheme='green'>
+                                                            {todoItem.state}
+                                                        </Badge>
+                                                    )}
                                                 </HStack>
                                                 <Text fontSize="20px">{todoItem.description}</Text>
                                                 <Text fontSize="20px">Due Date: {todoItem.dueDate}</Text>
                                                 <Flex mt={4} minWidth='max-content' alignItems='center' gap='2'>
-                                                    <Button colorScheme='gray' size='sm'>
-                                                        Mark as completed
-                                                    </Button>
+                                                    {!todoItem.completedAt && (
+                                                        <Button colorScheme='gray' size='sm'>
+                                                            Mark as completed
+                                                        </Button>
+                                                    )}
                                                 </Flex>
 
                                             </Flex>

@@ -37,12 +37,26 @@ async function fetchTodos() {
 
 async function createTodo(title, description, dueBy) {
     try {
+        // Get the token
+        let token = localStorage.getItem("token");
+
+        if (!token || token.length === 0) {
+            return null;
+        }
+
         let response = await fetch(
             `https://factory-digital-test.herokuapp.com/api/v1/todos/create`,
             {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({title, description, dueBy}),
+                headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    title,
+                    description: description.length > 0 ? description : null,
+                    dueBy,
+                }),
             });
         const data = await response.json();
 

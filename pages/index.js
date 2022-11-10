@@ -58,31 +58,19 @@ export default function Home() {
             setCreateTodoLoading(true);
             setCreateTodoErrorMessage(null);
 
-            fetch("https://factory-digital-test.herokuapp.com/api/v1/todos/create", {
-                method: "POST",
-                headers: {
-                    'Accept': 'application/json',
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ODg4ZDhkLWE3ZTUtNDI5Mi05ZjI2LWM5ZWRiNzE1YTYxYSIsImlhdCI6MTY2Nzk4NjM0MywiZXhwIjoxNjgzNzU0MzQzfQ.WjJQhsnnNf_DbDB27AQtG0cN8x68VM798tW286_zPaU"
-                },
-                body: JSON.stringify({
-                    "title": values.title,
-                    "description": values.description.length > 0 ? values.description : null,
-                    "dueBy": values.dueDate ? format(values.dueDate, "yyyy-MM-dd") : null,
-                })
-            }).then((res) => res.json())
-                .then((results) => {
-                    if (results.status) {
-                        setCreateTodoLoading(false);
-                        onClose();
-                        fetchTodos();
-                        createTodoForm.resetForm();
-                    } else {
-                        console.log("Error creating the todo ");
-                        setCreateTodoErrorMessage(`Error: ${results.message}`);
-                        setCreateTodoLoading(false);
-                    }
-                })
+            let dueBy = values.dueDate ? format(values.dueDate, "yyyy-MM-dd") : null;
+
+            let response = await todoService.createTodo(values.title, values.description, dueBy);
+
+            if (response){
+                createTodoForm.resetForm();
+                setCreateTodoLoading(false);
+                onClose();
+                fetchTodos();
+            } else {
+                setCreateTodoErrorMessage(`Error creating the todo. Please try again`);
+                setCreateTodoLoading(false);
+            }
         }
     })
 
@@ -258,8 +246,8 @@ export default function Home() {
                             <Heading fontSize="3xl" fontWeight={600}>
                                 Factory Digital Test
                             </Heading>
-                            <Text fontSize="20px" fontWeight={600} color="subtle-text">This frontend used to manage
-                                todos, build using NextJS, Chakra-UI and the fetch apis from Javascript</Text>
+                            <Text fontSize="20px" fontWeight={600} color="subtle-text">The frontend to manage
+                                todos</Text>
                         </Flex>
 
                         <VStack spacing='16px' align="center">
