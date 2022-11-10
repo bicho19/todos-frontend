@@ -4,6 +4,7 @@ import React from "react";
 import {Draggable} from "react-beautiful-dnd";
 import {Droppable} from "react-beautiful-dnd";
 import {todoService} from "./todoService";
+import {format} from "date-fns";
 
 const Column = ({todoList, onRefresh, placeholderProps}) => {
 
@@ -79,8 +80,10 @@ const Column = ({todoList, onRefresh, placeholderProps}) => {
                                                         </Badge>
                                                     )}
                                                 </HStack>
-                                                <Text fontSize="20px">{todoItem.description}</Text>
-                                                <Text fontSize="20px">Due Date: {todoItem.dueDate}</Text>
+                                                <Text fontSize={16}>{todoItem.description}</Text>
+                                                {todoItem.dueDate && (
+                                                    <Text fontSize={16}>Due Date: {format(new Date(todoItem.dueDate), "yyyy-MM-dd")}</Text>
+                                                )}
                                                 <Flex mt={4} minWidth='max-content' alignItems='center' gap='2'>
                                                     {!todoItem.completedAt && (
                                                         <Button
