@@ -41,8 +41,9 @@ export default function SignupPage() {
             let response = await userService.createAccount(values.name, values.email);
 
             setIsLoading(false);
-            if (response) {
 
+            if (response) {
+                router.push("/auth/login")
             } else {
                 setSignupError(true)
                 console.log("Error signup user");

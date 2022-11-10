@@ -44,7 +44,7 @@ export default function LoginPage() {
 
             setIsLoading(false);
             if (response) {
-
+                router.push("/");
             } else {
                 setLoginError(true)
                 console.log("Error logging the user in");
